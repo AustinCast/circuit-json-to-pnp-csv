@@ -35,7 +35,10 @@ export interface PickAndPlaceConversionOptions {
    * the selected supplier footprint's pin-1 frame when both are available.
    */
   supplier?: SupplierName
-  /** Reject unresolved supplier rotations instead of using the PCB rotation. */
+  /**
+   * Reject unresolved supplier rotations. Defaults to true for supplier exports.
+   * Set false explicitly to retain warning-only fallback for unverified drafts.
+   */
   requireSupplierRotation?: boolean
   /** Called for each unresolved rotation. Defaults to console.warn. */
   onRotationWarning?: (warning: PickAndPlaceRotationWarning) => void
@@ -58,7 +61,7 @@ const getPickAndPlaceRotation = (
     reason: PickAndPlaceRotationWarning["reason"],
   ): number => {
     const message = `${designator}: cannot verify ${supplier} pick-and-place rotation (${reason}); PCB rotation ${pcbComponent.rotation} is unverified.`
-    if (opts.requireSupplierRotation) throw new Error(message)
+    if (opts.requireSupplierRotation !== false) throw new Error(message)
     const warning = {
       designator,
       pcb_component_id: pcbComponent.pcb_component_id,
