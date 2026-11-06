@@ -187,7 +187,7 @@ describe("circuit-json-to-pnp-csv", () => {
     ).toContain("C1,30.000,40.000,bottom,0")
   })
 
-  test("explicit draft mode preserves rotation when pin-1 frames cannot be matched", () => {
+  test("preserves rotation when semantic pin-1 frames cannot be rotated into each other", () => {
     const incompatibleOrientationSoup = sampleSoup.map((element) => {
       if (element.type !== "pcb_component") return element
       return {
@@ -202,7 +202,6 @@ describe("circuit-json-to-pnp-csv", () => {
     expect(
       convertCircuitJsonToPickAndPlaceRows(incompatibleOrientationSoup, {
         supplier: "jlcpcb",
-        requireSupplierRotation: false,
       }).map((row) => row.rotation),
     ).toEqual([0, 90])
   })

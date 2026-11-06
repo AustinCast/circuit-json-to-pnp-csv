@@ -1,9 +1,9 @@
 import { expect, spyOn, test } from "bun:test"
 import type { AnyCircuitElement, PcbComponent } from "circuit-json"
 import {
-  type PickAndPlaceRotationWarning,
   convertCircuitJsonToPickAndPlaceCsv,
   convertCircuitJsonToPickAndPlaceRows,
+  type PickAndPlaceRotationWarning,
 } from "../src"
 
 const circuit = (
@@ -30,14 +30,11 @@ const circuit = (
   },
 ]
 
-test("explicit draft mode warns when falling back to an unverified PCB rotation", () => {
+test("warns by default when supplier export falls back to an unverified PCB rotation", () => {
   const warn = spyOn(console, "warn").mockImplementation(() => {})
   try {
     expect(
-      convertCircuitJsonToPickAndPlaceCsv(circuit(), {
-        supplier: "jlcpcb",
-        requireSupplierRotation: false,
-      }),
+      convertCircuitJsonToPickAndPlaceCsv(circuit(), { supplier: "jlcpcb" }),
     ).toContain("D_RGB,20.000,-19.000,top,180")
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]![0]).toContain("D_RGB: cannot verify jlcpcb")
@@ -68,7 +65,6 @@ for (const [overrides, reason] of [
     const warnings: PickAndPlaceRotationWarning[] = []
     const rows = convertCircuitJsonToPickAndPlaceRows(circuit(overrides), {
       supplier: "jlcpcb",
-      requireSupplierRotation: false,
       onRotationWarning: (warning) => warnings.push(warning),
     })
     expect(rows[0]!.rotation).toBe(180)
@@ -85,13 +81,6 @@ for (const [overrides, reason] of [
       convertCircuitJsonToPickAndPlaceCsv(circuit(overrides), {
         supplier: "jlcpcb",
         requireSupplierRotation: true,
-      }),
-    ).toThrow(reason)
-  })
-  test(`supplier CSV export rejects ${reason} by default`, () => {
-    expect(() =>
-      convertCircuitJsonToPickAndPlaceCsv(circuit(overrides), {
-        supplier: "jlcpcb",
       }),
     ).toThrow(reason)
   })

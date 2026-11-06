@@ -92,13 +92,12 @@ Pass `{ supplier: "jlcpcb" }` to adjust rotations using
 fields must describe the authored and supplier footprint frames; the converter
 does not fetch supplier footprints or analyze pad geometry.
 
-If either field is missing, or the frames cannot be related by rotation, a
-supplier-specific export **throws by default**. The PCB placement angle alone
-does not establish the selected supplier's assembly angle. For example, a
-DRV8452 footprint with lands rotated within the component needs a 90° supplier
-placement even when its PCB component rotation is 0°.
+If either field is missing, or the frames cannot be related by rotation, the
+converter keeps the PCB rotation **and emits a warning**. Supply
+`onRotationWarning` to collect structured diagnostics (designator, PCB component
+ID, supplier, reason and message) instead of logging them.
 
-For fabrication pipelines, prepare verified metadata and export for the supplier:
+For fabrication pipelines, reject unresolved rotations:
 
 ```ts
 const csv = convertCircuitJsonToPickAndPlaceCsv(circuitJson, {
@@ -107,14 +106,10 @@ const csv = convertCircuitJsonToPickAndPlaceCsv(circuitJson, {
 })
 ```
 
-Do-not-place components and test points are excluded as usual. Without a
-supplier, ordinary conversion retains PCB rotations without orientation warnings.
-`requireSupplierRotation: true` requires a supplier. Supplier-specific callers
-that intentionally need the previous warning-only behavior for an unverified
-draft must explicitly pass `requireSupplierRotation: false`. In that mode,
-`onRotationWarning` collects structured diagnostics (designator, PCB component
-ID, supplier, reason and message) instead of logging them. Do not use that
-fallback as a verified fabrication placement.
+`requireSupplierRotation` requires a supplier and throws before returning rows
+or CSV when any included component has unresolved rotation metadata. Do-not-place
+components and test points are excluded as usual. Without a supplier, ordinary
+conversion retains PCB rotations without orientation warnings.
 
 ### Preparing supplier orientation metadata
 
